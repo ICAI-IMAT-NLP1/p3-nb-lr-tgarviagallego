@@ -68,7 +68,7 @@ class SentimentExample:
 
     @words.setter
     def words(self, value):
-        raise NotImplemented
+        self._words.append(value)
 
     @property
     def label(self):
@@ -76,7 +76,7 @@ class SentimentExample:
 
     @label.setter
     def label(self, value):
-        raise NotImplemented
+        self._label = value
 
 
 def evaluate_classification(predictions: torch.Tensor, labels: torch.Tensor) -> Dict[str, float]:
@@ -90,6 +90,27 @@ def evaluate_classification(predictions: torch.Tensor, labels: torch.Tensor) -> 
     Returns:
         dict: A dictionary containing the calculated metrics.
     """
-    metrics: Dict[str, float] = None
+    metrics: Dict[str, float] = {}
+    
+    tp = 0
+    tn = 0
+    fp = 0
+    fn = 0
+    for i in range(predictions.size(0)):
+        if predictions[i] == labels[i]:
+            if predictions[i] == 1:
+                tp += 1
+            else:
+                tn += 1
+        else:
+            if predictions[i] == 1 and labels[i] == 0:
+                fp += 1
+            elif predictions[i] == 0 and labels[i] == 1:
+                fn += 1
+    
+    metrics["accuracy"] = (tp+tn)/(tp+fn+tn+fp)
+    metrics["precision"] = tp/(tp+fp) if (tp + fp) > 0 else 0.0
+    metrics["recall"] = tp/(tp+fn) if (tp + fn) > 0 else 0.0
+    metrics["f1_score"] = (2*metrics["precision"]*metrics["recall"])/(metrics["precision"]+metrics["recall"]) if (metrics["precision"]+metrics["recall"]) > 0 else 0.0
 
     return metrics
